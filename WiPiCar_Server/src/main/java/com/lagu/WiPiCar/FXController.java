@@ -42,14 +42,13 @@ public class FXController {
     private
     @FXML
     void cameraButtonAction(ActionEvent event) {
-        this.imageServer = new FFmpegFXImageDecoder(imageView,8000,100,
+        this.imageServer = new FFmpegFXImageDecoder(windowTerminal, imageView,8000,100,
                 "h264", 96,25000000,
-                "ultrafast",1);
+                "ultrafast",0);
         Thread imageProcessingThread = new Thread(this.imageServer);
         imageProcessingThread.setDaemon(true);
         imageProcessingThread.start();
         this.controlServer.controlState.set(5);
-        cameraButton.setDisable(true);
     }
 
     @FXML

@@ -2,6 +2,7 @@ package com.lagu.WiPiCar;
 
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
@@ -26,10 +27,12 @@ public class FFmpegFXImageDecoder implements Runnable {
     private final int bitrate;
     private final String preset;
     private final int numBuffers;
+    private final TextArea windowTerminal;
     
-    public FFmpegFXImageDecoder(ImageView imageView, int port, int serverBacklog, 
-                                String format, double framerate, int bitrate, 
+    public FFmpegFXImageDecoder(TextArea windowTerminal, ImageView imageView, int port, int serverBacklog,
+                                String format, double framerate, int bitrate,
                                 String preset, int numBuffers) {
+        this.windowTerminal = windowTerminal;
         this.view = imageView;
         this.port = port;
         this.serverBacklog = serverBacklog;
@@ -42,10 +45,13 @@ public class FFmpegFXImageDecoder implements Runnable {
 
     @Override
     public void run() {
+        Platform.runLater(() -> this.windowTerminal.appendText("\n[camera] Starting camera server"));
         try (final ServerSocket server = new ServerSocket(this.port, this.serverBacklog);
              final Socket clientSocket = server.accept();
-             final FrameGrabber grabber = new FFmpegFrameGrabber(clientSocket.getInputStream(), 0);) {
-            System.out.println("Connection from " + String.valueOf(clientSocket.getInetAddress()) + " on port " + String.valueOf(clientSocket.getPort()));
+             final FrameGrabber grabber = new FFmpegFrameGrabber(clientSocket.getInputStream(), 0)) {
+            Platform.runLater(() -> this.windowTerminal.appendText("\n[camera] Connection from " + clientSocket.getInetAddress() +
+                    " on port " + clientSocket.getPort()));
+            System.out.println("Connection from " + clientSocket.getInetAddress() + " on port " + clientSocket.getPort());
             final Java2DFrameConverter converter = new Java2DFrameConverter();
             grabber.setFrameRate(this.framerate);
             grabber.setFormat(this.format);
@@ -58,15 +64,14 @@ public class FFmpegFXImageDecoder implements Runnable {
                 if (frame == null) {
                     Platform.runLater(() -> {
                         this.view.setImage(null);
+                        this.windowTerminal.appendText("\n[camera] ending camera connection");
                     });
                     grabber.stop();
                     Thread.currentThread().interrupt();
                 }
                 final BufferedImage bufferedImage = converter.convert(frame);
                 if (bufferedImage != null) {
-                        Platform.runLater(() -> {
-                            this.view.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
-                        });
+                        Platform.runLater(() -> this.view.setImage(SwingFXUtils.toFXImage(bufferedImage, null)));
                 }
             }
         } catch (final IOException e) {
