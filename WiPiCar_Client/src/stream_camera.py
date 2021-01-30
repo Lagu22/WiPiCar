@@ -4,7 +4,7 @@ from picamera import PiCamera
 from signal import pause
 from time import sleep
 import socket
-
+import sys
 
 
 class Stream_Camera:
@@ -27,9 +27,10 @@ class Stream_Camera:
             with soc.makefile("wb") as file:  # Create file stream
                 try:
                     self.camera.start_recording(file, format="h264", intra_period=0, quality=0, bitrate=25000000)
-                    #pause()  # Wait/record forever
-                    input(self.name, "Camera streaming")
+                    pause()  # Wait/record forever
+                    #input((self.name + " Camera streaming"))
                 finally:
                     self.camera.stop_recording()
                     print(self.name, "Stopping camera")
         print(self.name, "Connection ended")
+
