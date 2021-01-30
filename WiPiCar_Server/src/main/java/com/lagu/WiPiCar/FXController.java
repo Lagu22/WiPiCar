@@ -48,6 +48,7 @@ public class FXController {
         Thread imageProcessingThread = new Thread(this.imageServer);
         imageProcessingThread.setDaemon(true);
         imageProcessingThread.start();
+        this.controlServer.controlState.set(5);
         cameraButton.setDisable(true);
     }
 
@@ -71,14 +72,14 @@ public class FXController {
     @FXML
     void reverseButtonAction(ActionEvent event) {
         if (this.controlServer.controlState.get() == 0) {
-            this.controlServer.controlState.set(2);
+            this.controlServer.controlState.set(3);
         }
     }
 
     @FXML
     void rightButtonAction(ActionEvent event) {
         if (this.controlServer.controlState.get() == 0) {
-            this.controlServer.controlState.set(3);
+            this.controlServer.controlState.set(2);
         }
     }
 
